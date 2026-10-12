@@ -347,7 +347,10 @@ describe('commands and errors', () => {
 
 describe('continuous integration', () => {
   it('checks this repository in the lint job', () => {
-    const workflow = readFileSync('.github/workflows/release.yml', 'utf8');
+    const workflow = readFileSync(
+      '.github/workflows/release.yml',
+      'utf8'
+    ).replaceAll('\r\n', '\n');
     expect(workflow).toContain(
       '      - name: Check for watermarks and hidden characters\n        run: node bin/watermarks-remover.js'
     );
