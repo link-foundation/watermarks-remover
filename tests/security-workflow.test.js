@@ -73,7 +73,10 @@ describe('security workflow', () => {
     const dependencyReview = getJobBlock('dependency-review');
 
     expect(dependencyReview).toContain(
-      "    if: github.event_name == 'pull_request'"
+      "    if: github.event_name == 'pull_request' || github.event_name == 'push'"
+    );
+    expect(dependencyReview).toContain(
+      "        if: github.event_name == 'pull_request' && steps.graph.outputs.enabled == 'true'"
     );
     expect(dependencyReview).toContain('    timeout-minutes: 10');
     expect(dependencyReview).toContain(
@@ -86,6 +89,19 @@ describe('security workflow', () => {
     expect(dependencyReview).toContain('          fail-on-severity: high');
     expect(dependencyReview).toContain(
       '          comment-summary-in-pr: on-failure'
+    );
+  });
+
+  it('names the Dependency graph setting while it is disabled', () => {
+    const dependencyReview = getJobBlock('dependency-review');
+
+    expect(dependencyReview).toContain('/dependency-graph/compare/');
+    expect(dependencyReview).toContain('settings/security_analysis');
+    expect(dependencyReview).toContain(
+      'echo "::warning title=Dependency review skipped::$message"'
+    );
+    expect(dependencyReview).toContain(
+      'echo "::error title=Dependency graph disabled::$message"\n            exit 1'
     );
   });
 
