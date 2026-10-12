@@ -7,6 +7,7 @@
     "npm:eslint@^9.38.0": "9.39.4",
     "npm:husky@^9.1.7": "9.1.7",
     "npm:jscpd@^5.4.0": "5.4.0",
+    "npm:links-notation@~0.25.2": "0.25.2",
     "npm:lint-staged@^16.4.0": "16.4.0",
     "npm:prettier@^3.6.2": "3.8.4",
     "npm:test-anywhere@~0.8.48": "0.8.50"
@@ -709,6 +710,9 @@
         "type-check"
       ]
     },
+    "links-notation@0.25.2": {
+      "integrity": "sha512-f8h1QZieLXAA6yIx3CiAAgWksGgPQ0y6NQ1vRdKQUGSjIVYpHoVSwd13xVLSFDhUPVJn+pcZMOoQVZViV4ohpg=="
+    },
     "lint-staged@16.4.0": {
       "integrity": "sha512-lBWt8hujh/Cjysw5GYVmZpFHXDCgZzhrOm8vbcUdobADZNOK/bRshr2kM3DfgrrtR1DQhfupW9gnIXOfiFi+bw==",
       "dependencies": [
@@ -980,6 +984,7 @@
         "npm:eslint@^9.38.0",
         "npm:husky@^9.1.7",
         "npm:jscpd@^5.4.0",
+        "npm:links-notation@~0.25.2",
         "npm:lint-staged@^16.4.0",
         "npm:prettier@^3.6.2",
         "npm:test-anywhere@~0.8.48"

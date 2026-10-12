@@ -1,0 +1,21 @@
+# watermarks-remover checks this repository with itself, see README.md.
+# Every setting not written here keeps its default.
+
+files
+  exclude
+    # Raw evidence kept by earlier case studies: CI logs with ANSI colours,
+    # API responses and diffs are archived byte for byte.
+    'docs/case-studies/*/ci-logs'
+    'docs/case-studies/*/data'
+    'docs/case-studies/**/*.{txt,patch,log}'
+
+overrides
+  # Sources and tests describe hidden characters with ASCII escapes and
+  # chatbot artifacts with ASCII samples.
+  'src' 'bin' 'scripts' 'tests' 'experiments' 'examples'
+    rules
+      escaped-character: off
+  'tests' 'experiments' 'examples'
+    rules
+      ai-artifact: off
+      provenance-manifest: off

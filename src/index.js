@@ -1,28 +1,38 @@
 /**
- * Example module entry point
- * Replace this with your actual implementation
+ * watermarks-remover: finds and removes invisible characters, hidden
+ * payloads, AI chat artifacts, provenance manifests, look-alike letters,
+ * mixed line endings, byte order marks, legacy encodings and image
+ * metadata.
+ *
+ * This entry point never touches the file system, so it also runs in
+ * browsers. File system helpers live in `@link-foundation/watermarks-remover/node`.
  */
 
-/**
- * Example function that adds two numbers
- * @param {number} a - First number
- * @param {number} b - Second number
- * @returns {number} Sum of a and b
- */
-export const add = (a, b) => a + b;
-
-/**
- * Example function that multiplies two numbers
- * @param {number} a - First number
- * @param {number} b - Second number
- * @returns {number} Product of a and b
- */
-export const multiply = (a, b) => a * b;
-
-/**
- * Example async function
- * @param {number} ms - Milliseconds to wait
- * @returns {Promise<void>}
- */
-export const delay = (ms) =>
-  new Promise((resolve) => globalThis.setTimeout(resolve, ms));
+export { checkFile, textOptions } from './engine.js';
+export { createLocator, fixText, scanText } from './text-rules.js';
+export {
+  CONFIG_FILE,
+  ConfigError,
+  STARTER_CONFIG,
+  defaultConfig,
+  isIncluded,
+  parseConfig,
+  settingsFor,
+} from './config.js';
+export {
+  RULES,
+  RULE_IDS,
+  SEVERITIES,
+  defaultSeverities,
+  getRule,
+} from './rules.js';
+export { decode, encode, normalizeEncoding } from './encoding.js';
+export { stripImageMetadata } from './images.js';
+export { escapeInvisible } from './payload.js';
+export { matchesGlob } from './glob.js';
+export {
+  FORMATS,
+  formatReport,
+  formatStepSummary,
+  summarize,
+} from './reporters.js';
