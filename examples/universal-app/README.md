@@ -1,10 +1,12 @@
-# Universal Example App
+# Watermarks Remover App
 
-This example turns the package functions in `src/index.js` into a React UI and
-uses the same build output for GitHub Pages, Electron desktop packages, and
-Capacitor mobile projects.
+This example puts the text checks from `src/index.js` into a React UI: paste
+text, see every hidden character, watermark and look-alike letter with its
+line and column, and copy the cleaned text. Everything runs locally; the
+text never leaves the device. The same build output is used for GitHub
+Pages, Electron desktop packages, and Capacitor mobile projects.
 
-![Universal example app preview](../../docs/screenshots/example-app/example-app.png)
+![Watermarks Remover app preview](../../docs/screenshots/example-app/example-app.png)
 
 > The preview image above is regenerated automatically on every push to `main`
 > by the `preview-regen` job in `.github/workflows/example-app.yml`. Run it
@@ -15,6 +17,10 @@ Capacitor mobile projects.
 ```bash
 npm install --prefix examples/universal-app
 ```
+
+The app imports `src/text-rules.js` and `src/payload.js` directly. They have
+no dependencies, so the browser bundle does not include the Links Notation
+configuration loader that only the command line needs.
 
 ## Web
 

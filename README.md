@@ -1,62 +1,246 @@
-# js-ai-driven-development-pipeline-template
+# watermarks-remover
 
-A comprehensive template for AI-driven JavaScript/TypeScript development with full CI/CD pipeline support.
+Find and remove hidden characters, AI text watermarks and encoding problems
+in every file of a repository. Run it in CI: it fails with the exact command
+that fixes everything it found.
 
-This repository publishes the real test package
-`@link-foundation/example-package-name` so the template release pipeline is
-validated end to end with npm trusted publishing.
+```bash
+npx @link-foundation/watermarks-remover        # check, exit 1 on problems
+npx @link-foundation/watermarks-remover --fix  # repair the files in place
+```
 
-## Features
+Text copied from chatbots, web pages and documents often carries characters
+nobody can see: zero-width spaces, Unicode tag characters that spell out a
+hidden message, variation selectors that smuggle whole files, bidirectional
+overrides that make code read differently from how it runs (Trojan Source),
+look-alike Cyrillic letters inside Latin words, no-break spaces and stray
+citation markers. watermarks-remover finds all of them, explains each one
+with its line and column, and removes them. It also keeps the files
+themselves consistent: one line ending style, one byte order mark policy,
+UTF-8 everywhere, no mojibake, and no hidden metadata in PNG and JPEG
+images.
 
-- **Multi-runtime support**: Works with Bun, Node.js, and Deno
-- **Universal testing**: Uses [test-anywhere](https://github.com/link-foundation/test-anywhere) for cross-runtime tests
-- **Automated releases**: Changesets-based versioning with GitHub Actions
-- **Optional Docker Hub publishing**: Docker images can be published after the matching npm version is visible
-- **Universal app example**: React UI for the package API with GitHub Pages, Electron, and Capacitor build paths
-- **Code quality**: ESLint + Prettier with pre-commit hooks via Husky
-- **Package manager agnostic**: Works with bun, npm, yarn, pnpm, and deno
-- **Broken link checks**: Automated link validation with [lychee](https://github.com/lycheeverse/lychee-action) and Web Archive fallback suggestions
+It only uses Node.js and its own code, runs the same on Node.js, Bun and
+Deno, needs no editor plugin, hook or AI service, and is configured with a
+short, readable [Links Notation](https://github.com/link-foundation/links-notation)
+file.
 
 ## Quick Start
 
-### Using This Template
+Check the current directory (files ignored by git are skipped):
 
-1. Click "Use this template" on GitHub to create a new repository
-2. Clone your new repository
-3. Update `package.json` with your package name and description
-4. Install dependencies: `bun install`
-5. Start developing!
+```bash
+npx @link-foundation/watermarks-remover
+```
 
-### Development
+```text
+docs/guide.md:3:11  error  U+200B ZERO WIDTH SPACE  zero-width
+src/app.js:3:7  error  4 invisible characters (U+E0054, U+E0045, U+E0058); hidden text: "TEXT"  tag-character
+
+2 problems (2 errors, 0 warnings) in 2 checked files.
+2 can be fixed automatically: run `npx @link-foundation/watermarks-remover --fix` and commit the result.
+```
+
+Fix them, then commit the result:
+
+```bash
+npx @link-foundation/watermarks-remover --fix
+```
+
+Other ways to run it:
+
+```bash
+npx @link-foundation/watermarks-remover docs src/app.js   # only these paths
+npx @link-foundation/watermarks-remover --init            # write a starter config
+npx @link-foundation/watermarks-remover --list-rules      # every rule and its default
+pbpaste | npx @link-foundation/watermarks-remover --stdin --fix | pbcopy
+```
+
+Exit codes: `0` nothing to report, `1` problems found, `2` usage or
+configuration error.
+
+### In CI
+
+Add one step to any GitHub Actions job. On GitHub Actions the report is
+written as file annotations plus a step summary, so every problem shows up
+on the pull request diff:
+
+```yaml
+- uses: actions/checkout@v6
+- uses: actions/setup-node@v6
+  with:
+    node-version: 24
+- run: npx --yes @link-foundation/watermarks-remover
+```
+
+Other CI systems work the same way; use `--format json` or
+`--format sarif --output watermarks.sarif` for machine readable reports
+(SARIF uploads to GitHub code scanning). This repository checks itself in the
+`lint` job of [`release.yml`](.github/workflows/release.yml).
+
+### As a library
+
+```js
+import {
+  scanText,
+  fixText,
+  escapeInvisible,
+} from '@link-foundation/watermarks-remover';
+
+const text = 'Hello\u200B world\n';
+for (const finding of scanText(text)) {
+  console.log(finding.index, finding.rule, finding.message);
+}
+console.log(escapeInvisible(text)); // Hello\u{200B} world\u{A}
+console.log(fixText(text)); // Hello world\n
+```
+
+`checkFile(path, bytes, config)` runs every rule on the raw bytes of a file,
+including encodings, byte order marks and image metadata. Type definitions
+are in [`src/index.d.ts`](src/index.d.ts) and
+[`src/node.d.ts`](src/node.d.ts).
+
+### Try it in the browser
+
+[`examples/universal-app`](examples/universal-app) is a small React app: paste
+text, see every hidden character and copy the cleaned text. The text never
+leaves the page. It builds for GitHub Pages, Electron and Capacitor.
+
+![Watermarks Remover app preview](docs/screenshots/example-app/example-app.png)
+
+## What It Finds
+
+Every rule can be set to `error`, `warn` or `off`. Rules marked with "fix"
+are repaired by `--fix`; the others need a person to decide.
+
+| Rule                      | Default | Fix | Finds                                                                                           |
+| ------------------------- | ------- | --- | ----------------------------------------------------------------------------------------------- |
+| `provenance-manifest`     | error   | fix | C2PA text manifests: armoured comment blocks and U+FEFF plus variation selector wrappers        |
+| `zero-width`              | error   | fix | Zero-width spaces, joiners and word joiners outside emoji and joining scripts                   |
+| `bidi-control`            | error   | fix | Bidirectional overrides, embeddings and isolates (Trojan Source) outside right-to-left text     |
+| `tag-character`           | error   | fix | Unicode tag characters (ASCII smuggling) outside emoji flag sequences                           |
+| `variation-selector`      | error   | fix | Variation selectors in runs or after characters they cannot modify (byte smuggling)             |
+| `invisible-format`        | error   | fix | Soft hyphens, invisible operators, Hangul fillers and other invisible format characters         |
+| `private-use`             | error   | fix | Private-use code points, which have no public meaning                                           |
+| `noncharacter`            | error   | fix | Unicode noncharacters such as U+FFFE and U+FDD0                                                 |
+| `unassigned`              | warn    | fix | Code points unassigned in the Unicode version of the runtime                                    |
+| `replacement-character`   | warn    |     | U+FFFD left behind by an earlier lossy decoding                                                 |
+| `unusual-space`           | error   | fix | No-break, thin, em and other look-alike spaces                                                  |
+| `line-separator`          | error   | fix | U+2028, U+2029 and NEL line breaks                                                              |
+| `control-character`       | error   | fix | C0 and C1 control characters other than tab, LF and CR                                          |
+| `compatibility-character` | error   | fix | Fullwidth Latin outside CJK text, mathematical alphanumerics and Latin ligatures                |
+| `confusable`              | error   | fix | Words mixing Latin, Cyrillic and Greek look-alike letters (homoglyphs)                          |
+| `combining-marks`         | error   | fix | Excessive stacks of combining marks on one character                                            |
+| `unicode-normalization`   | error   | fix | Text that is not in Unicode Normalization Form C                                                |
+| `ai-artifact`             | error   | fix | Leftover chatbot citation markers and tracking parameters such as `utm_source=chatgpt.com`      |
+| `mojibake`                | error   | fix | UTF-8 text that was decoded as Windows-1252 and saved again                                     |
+| `escaped-character`       | warn    |     | Escapes such as `\u200B`, `&#x200B;` or `%E2%80%8B` that write invisible characters in ASCII    |
+| `typographic-punctuation` | off     | fix | Curly quotes, dashes and ellipses, rewritten as plain ASCII                                     |
+| `unexpected-script`       | error   |     | Letters from scripts outside the configured `allowed-scripts`                                   |
+| `trailing-whitespace`     | error   | fix | Spaces and tabs at line ends (whitespace steganography); Markdown hard breaks are kept          |
+| `line-endings`            | error   | fix | Line endings that differ from the configured style                                              |
+| `final-newline`           | error   | fix | Missing final newline or trailing blank lines                                                   |
+| `encoding`                | error   | fix | Text files not encoded as UTF-8 (UTF-16, UTF-32 and legacy single byte encodings are converted) |
+| `bom`                     | error   | fix | Byte order mark presence that differs from the configured policy                                |
+| `file-name`               | error   |     | Invisible, look-alike or unnormalized characters in file and directory names                    |
+| `image-metadata`          | error   | fix | C2PA manifests, XMP, IPTC, comments and text chunks in PNG and JPEG images; EXIF is kept        |
+
+Characters with a legitimate use are kept where they belong: zero-width
+joiners inside emoji and in Arabic or Indic text, variation selectors after
+characters that have variants, tag characters in flag emoji, bidirectional
+marks in right-to-left text and fullwidth letters in CJK text.
+
+Out of scope: statistical watermarks that live in word choice (such as
+SynthID Text or the Kirchenbauer green list scheme) cannot be removed by
+editing characters; only rewriting the text removes them. Pixel watermarks
+in images are not touched either, only image metadata.
+
+The research behind every rule, a comparison with 40 related tools and the
+full list of requirements is in the
+[issue 1 case study](docs/case-studies/issue-1/README.md).
+
+## Configuration
+
+Settings live in `.watermarks-remover.lino` at the repository root (or the
+file given with `--config`). Every setting is optional; `--init` writes this
+file with the defaults:
+
+```lino
+# utf-8 converts every text file to UTF-8, keep leaves encodings alone.
+encoding: utf-8
+# How to read text files that are not valid UTF-8.
+fallback-encoding: windows-1252
+# remove, require or keep the UTF-8 byte order mark.
+bom: remove
+# lf, crlf or keep.
+line-endings: lf
+# Letters of other scripts are reported, for example: Latin Cyrillic Greek
+allowed-scripts: all
+combining-mark-limit: 6
+markdown-hard-breaks: true
+max-file-size: 10mb
+
+files
+  include
+    '**'
+  exclude
+    'node_modules'
+
+# Severities are error, warn or off. Run --list-rules to see every rule.
+rules
+  typographic-punctuation: off
+  escaped-character: warn
+
+# Settings for matching files, applied in order.
+overrides
+  '*.bat' '*.cmd'
+    line-endings: crlf
+```
+
+- **Encoding exceptions**: add an override with `encoding: keep` for files
+  that must stay in a legacy encoding, for example
+  `'legacy/**'` followed by an indented `encoding: keep`.
+- **Languages**: `allowed-scripts: Latin Cyrillic` reports letters of any
+  other script, so invisible or exotic characters outside the languages of
+  the project stand out.
+- **Patterns** use gitignore-like globs: `*.md` matches at any depth,
+  `docs/*.md` only directly inside `docs`, `**` any number of directories
+  and `{js,mjs}` alternatives. A pattern without a slash or wildcard matches
+  a whole directory.
+- Binary files and files larger than `max-file-size` are skipped, except
+  PNG and JPEG images, whose metadata is checked.
+
+The configuration of this repository is
+[`.watermarks-remover.lino`](.watermarks-remover.lino).
+
+## Development
 
 ```bash
 # Install dependencies
-bun install
+npm install
 
-# Run tests
-bun test --timeout 30000
-
-# Or with other runtimes:
+# Run tests with any runtime
 npm test
+bun test --timeout 30000
 deno test -A --parallel
 
-# Lint code
-bun run lint
+# Lint, format and duplication checks
+npm run lint
+npm run format:check
+npm run check:duplication
 
-# Format code
-bun run format
-
-# Check all (lint + format + file size)
-bun run check
+# Check this repository with the tool itself
+node bin/watermarks-remover.js
 
 # Build the universal React example app
 npm install --prefix examples/universal-app
 npm run example:web:build
 npm run example:desktop:package
-
-# Try the CLI locally
-node bin/example-package-name.js add 2 3
 ```
+
+This repository is built on the
+[js-ai-driven-development-pipeline-template](https://github.com/link-foundation/js-ai-driven-development-pipeline-template):
+the sections below describe its release pipeline.
 
 ## Project Structure
 
@@ -65,12 +249,18 @@ node bin/example-package-name.js add 2 3
 ├── .changeset/           # Changeset configuration
 ├── .github/workflows/    # GitHub Actions CI/CD
 ├── .husky/               # Git hooks (pre-commit)
+├── bin/                  # watermarks-remover command line
+├── docs/case-studies/    # Research behind each issue
 ├── examples/             # Usage examples
 │   └── universal-app/    # React + GitHub Pages + Electron + Capacitor app
 ├── scripts/              # Build and release scripts
 ├── src/                  # Source code
-│   ├── index.js          # Main entry point
-│   └── index.d.ts        # TypeScript definitions
+│   ├── index.js          # Library entry point (runs anywhere)
+│   ├── node.js           # File system entry point (CLI, file discovery)
+│   ├── text-rules.js     # Text rules: scanText and fixText
+│   ├── encoding.js       # Encodings, byte order marks, mojibake
+│   ├── images.js         # PNG and JPEG metadata
+│   └── config.js         # Links Notation configuration
 ├── tests/                # Test files
 ├── .eslintrc.js          # ESLint configuration
 ├── .prettierrc           # Prettier configuration
@@ -105,8 +295,9 @@ Note: `package-lock.json` is not committed by default to allow any package manag
 
 ### Universal App Example
 
-The template includes `examples/universal-app`, a Vite React app that imports
-`add` and `multiply` from `src/index.js` and renders a visual calculator UI.
+The repository includes `examples/universal-app`, a Vite React app that imports
+`scanText` and `fixText` from `src/text-rules.js` and renders a paste-and-clean
+UI.
 The same static build is used by:
 
 - GitHub Pages (`npm run example:web:build`)
@@ -266,17 +457,7 @@ The link checker workflow (`.github/workflows/links.yml`) validates all links in
 
 Add regex patterns to `.lycheeignore` to exclude URLs from checks (e.g., local dev URLs, example.com, known rate-limited sites).
 
-## Configuration
-
-### Updating Package Name
-
-After creating a repository from this template, update the package name in:
-
-1. `package.json`: replace `"@link-foundation/example-package-name"` with your package name
-2. `.changeset/config.json`: Package references
-
-Release scripts derive the package name from `package.json` at runtime, so no
-script-level package-name constants need to be edited during template adoption.
+## Repository Configuration
 
 ### Protected-Branch Release Pull Requests
 
