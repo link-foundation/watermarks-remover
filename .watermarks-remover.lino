@@ -10,9 +10,9 @@ files
     'docs/case-studies/**/*.{txt,patch,log}'
 
 overrides
-  # Sources and tests describe hidden characters with ASCII escapes and
-  # chatbot artifacts with ASCII samples.
-  'src' 'bin' 'scripts' 'tests' 'experiments' 'examples'
+  # Sources, tests and documentation describe hidden characters with ASCII
+  # escapes and chatbot artifacts with ASCII samples.
+  'src' 'bin' 'scripts' 'tests' 'experiments' 'examples' 'docs' 'README.md'
     rules
       escaped-character: off
   'tests' 'experiments' 'examples'
