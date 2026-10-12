@@ -225,4 +225,11 @@ describe('matchesGlob', () => {
       expect(matchesGlob(path, pattern)).toBe(matches);
     });
   }
+
+  it('trims slashes in linear time', () => {
+    const start = Date.now();
+    expect(matchesGlob('a', `${'/'.repeat(20000)}a`)).toBe(false);
+    expect(matchesGlob('a/b', `./a${'/'.repeat(20000)}`)).toBe(true);
+    expect(Date.now() - start).toBeLessThan(200);
+  });
 });

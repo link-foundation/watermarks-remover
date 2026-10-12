@@ -246,7 +246,19 @@ describe('report formats', () => {
       expect(result.stdout).toContain(`Run ${FIX_HINT} a,b.txt to fix.`);
       const markdown = read(root, 'summary.md');
       expect(markdown).toContain('## watermarks-remover');
-      expect(markdown).toContain('| `a,b.txt:1:6` | zero-width |');
+      expect(markdown).toContain('| a,b.txt:1:6 | zero-width |');
+    });
+  });
+
+  it('escapes Markdown in the step summary', async () => {
+    await inProject({ 'x\\|y.txt': '&#x200B;\n' }, async (root) => {
+      const summary = join(root, 'summary.md');
+      await cli(root, [], {
+        env: { GITHUB_ACTIONS: 'true', GITHUB_STEP_SUMMARY: summary },
+      });
+      expect(read(root, 'summary.md')).toContain(
+        '| x\\\\\\|y.txt:1:1 | escaped-character | escape "\\&#x200B;" writes'
+      );
     });
   });
 

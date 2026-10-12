@@ -52,12 +52,27 @@ function translate(pattern) {
 }
 
 /**
+ * Drops a leading `./` and any trailing slashes. A loop keeps this linear
+ * for patterns with long runs of slashes.
+ *
+ * @param {string} pattern
+ * @returns {string}
+ */
+function trimPattern(pattern) {
+  let end = pattern.length;
+  while (end > 0 && pattern[end - 1] === '/') {
+    end -= 1;
+  }
+  return pattern.slice(pattern.startsWith('./') ? 2 : 0, end);
+}
+
+/**
  * @param {string} pattern
  * @returns {RegExp}
  */
 function compile(pattern) {
   if (!CACHE.has(pattern)) {
-    const trimmed = pattern.replace(/^\.\//, '').replace(/\/+$/, '');
+    const trimmed = trimPattern(pattern);
     const anchored = trimmed.includes('/');
     const body = translate(trimmed.replace(/^\//, ''));
     const prefix = anchored ? '^' : '^(?:.*/)?';

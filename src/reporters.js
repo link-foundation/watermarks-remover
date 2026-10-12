@@ -133,6 +133,17 @@ function formatGithub(result, context) {
 }
 
 /**
+ * Backslash-escapes every character that starts Markdown syntax inside a
+ * table cell, so that a file name or a quoted escape such as `&#x200B;`
+ * is shown as written and never rendered.
+ *
+ * @param {string} value
+ * @returns {string}
+ */
+const markdownCell = (value) =>
+  escapeInvisible(value).replace(/[\\`*_[\]<>|~&]/g, '\\$&');
+
+/**
  * @param {RunResult} result
  * @param {ReportContext} context
  * @returns {string} Markdown for `$GITHUB_STEP_SUMMARY`
@@ -143,10 +154,8 @@ export function formatStepSummary(result, context) {
   if (findings.length > 0) {
     lines.push('', '| Location | Rule | Problem |', '| --- | --- | --- |');
     for (const found of findings.slice(0, 200)) {
-      const cell = (value) =>
-        escapeInvisible(value).replace(/\|/g, '\\|').replace(/`/g, "'");
       lines.push(
-        `| \`${cell(position(found))}\` | ${found.rule} | ${cell(found.message)} |`
+        `| ${markdownCell(position(found))} | ${found.rule} | ${markdownCell(found.message)} |`
       );
     }
     if (findings.length > 200) {
