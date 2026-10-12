@@ -251,10 +251,12 @@ describe('report formats', () => {
   });
 
   it('escapes Markdown in the step summary', async () => {
-    await inProject({ 'x\\|y.txt': '&#x200B;\n' }, async (root) => {
+    await inProject({}, async (root) => {
       const summary = join(root, 'summary.md');
-      await cli(root, [], {
+      // Standard input allows a name that no Windows file could have.
+      await cli(root, ['--stdin', '--stdin-filename', 'x\\|y.txt'], {
         env: { GITHUB_ACTIONS: 'true', GITHUB_STEP_SUMMARY: summary },
+        readStdin: async () => new TextEncoder().encode('&#x200B;\n'),
       });
       expect(read(root, 'summary.md')).toContain(
         '| x\\\\\\|y.txt:1:1 | escaped-character | escape "\\&#x200B;" writes'
