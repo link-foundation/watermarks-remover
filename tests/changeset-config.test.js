@@ -141,7 +141,9 @@ describe('Changesets release formatter', () => {
                 npm_config_loglevel: 'verbose',
               },
               encoding: 'utf8',
-              timeout: 20000,
+              // `deno test --parallel` on Windows runners needed 16-20 s here
+              // while Node.js needed 2-5 s, so leave room for that load.
+              timeout: 60000,
             }
           );
           execution.child.stdin.end();

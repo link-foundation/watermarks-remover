@@ -268,6 +268,11 @@ jobs:
       - name: Check for secrets
         run: npx --yes -p secretlint@13.0.7 -p @secretlint/secretlint-rule-preset-recommend@13.0.7 secretlint "**/*"
 
+      # The package checks its own repository: hidden characters, encodings,
+      # byte order marks and line endings. Run with --fix to repair.
+      - name: Check for watermarks and hidden characters
+        run: node bin/watermarks-remover.js
+
   # Test matrix: 3 runtimes (Node.js, Bun, Deno) x 3 OS (Ubuntu, macOS, Windows)
   # IMPORTANT: Tests must validate the ACTUAL merge result, not a stale merge preview.
   # See docs/case-studies/issue-23 for why this is critical.

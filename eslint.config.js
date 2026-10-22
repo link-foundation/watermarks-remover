@@ -36,6 +36,8 @@ export default [
         AbortSignal: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
+        TextDecoder: 'readonly',
+        TextEncoder: 'readonly',
         // Runtime-specific globals
         Bun: 'readonly',
         Deno: 'readonly',

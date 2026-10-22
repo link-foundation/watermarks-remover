@@ -7,16 +7,14 @@ import { spawnSync } from 'node:child_process';
 
 const fixture = mkdtempSync(join(tmpdir(), 'cli-symlink-probe-'));
 try {
-  const link = join(fixture, 'example-package-name');
-  symlinkSync(resolve('bin/example-package-name.js'), link);
+  const link = join(fixture, 'watermarks-remover');
+  symlinkSync(resolve('bin/watermarks-remover.js'), link);
   const result = spawnSync(
     process.execPath,
     [
       ...(globalThis.Deno ? ['run', '-A', '--ext=js'] : []),
       link,
-      'multiply',
-      '6',
-      '7',
+      '--list-rules',
     ],
     { encoding: 'utf8', timeout: 15000 }
   );

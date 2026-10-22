@@ -1,12 +1,12 @@
 {
-  "name": "@link-foundation/example-package-name",
+  "name": "@link-foundation/watermarks-remover",
   "version": "0.11.31",
-  "description": "A JavaScript/TypeScript package template for AI-driven development",
+  "description": "CI/CD check that finds and removes text watermarks, invisible characters, hidden payloads, AI chat artifacts, homoglyphs, mixed line endings, byte order marks, legacy encodings and image provenance metadata",
   "type": "module",
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "bin": {
-    "example-package-name": "./bin/example-package-name.js"
+    "watermarks-remover": "./bin/watermarks-remover.js"
   },
   "files": [
     "bin/",
@@ -19,7 +19,12 @@
     ".": {
       "types": "./src/index.d.ts",
       "import": "./src/index.js"
-    }
+    },
+    "./node": {
+      "types": "./src/node.d.ts",
+      "import": "./src/node.js"
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
     "test": "node --test --test-timeout=30000 tests/*.test.js",
@@ -44,10 +49,24 @@
     "changeset:status": "changeset status --since=origin/main"
   },
   "keywords": [
-    "template",
-    "javascript",
-    "typescript",
-    "ai-driven"
+    "watermark",
+    "watermarks",
+    "invisible-characters",
+    "zero-width",
+    "unicode",
+    "homoglyph",
+    "trojan-source",
+    "ascii-smuggling",
+    "c2pa",
+    "ai-detection",
+    "chatgpt",
+    "encoding",
+    "bom",
+    "line-endings",
+    "lint",
+    "ci",
+    "sanitizer",
+    "links-notation"
   ],
   "author": "",
   "license": "Unlicense",
@@ -61,7 +80,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/link-foundation/js-ai-driven-development-pipeline-template.git"
+    "url": "git+https://github.com/link-foundation/watermarks-remover.git"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -87,5 +106,12 @@
       "prettier --write",
       "prettier --check"
     ]
+  },
+  "dependencies": {
+    "links-notation": "^0.25.2"
+  },
+  "homepage": "https://github.com/link-foundation/watermarks-remover#readme",
+  "bugs": {
+    "url": "https://github.com/link-foundation/watermarks-remover/issues"
   }
 }
